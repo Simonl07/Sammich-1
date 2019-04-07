@@ -129,11 +129,7 @@ func startTickin() {
 
 // Fetch list of merits
 func FetchMerits(w http.ResponseWriter, r *http.Request) {
-	jsonString, err := json.Marshal(SBC.ShowApplications())
-	if err != nil {
-		w.WriteHeader(500)
-	}
-	w.Write(jsonString)
+	w.Write([]byte(SBC.ShowApplications()))
 }
 
 // Fetch list of acceptances
@@ -181,6 +177,8 @@ func Accept(w http.ResponseWriter, r *http.Request) {
 		2. Add acceptance to cache
 		3. Respond with Identity + PubKey of applicant
 	*/
+	cachemux.Lock()
+	defer cachemux.Unlock()
 	vars := mux.Vars(r)
 	// 1
 	// 2
