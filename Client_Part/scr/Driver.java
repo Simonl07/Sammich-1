@@ -109,6 +109,7 @@ public class Driver {
 			PublicKey pub = kp.getPublic();
 			String hex = byteArrayToHex(pub.getEncoded());
 			System.out.println(hex);
+			
 			byte[] b = hexToByteArray(hex);
 			X509EncodedKeySpec spec =
 				      new X509EncodedKeySpec(b);
