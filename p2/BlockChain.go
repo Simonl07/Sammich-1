@@ -160,7 +160,7 @@ func (bc *BlockChain) ShowAcceptances() map[string]int32 {
 	return acc
 }
 
-func (bc *BlockChain) ShowApplciations() []string {
+func (bc *BlockChain) ShowApplications() []string {
 	var merits []string
 
 	for _, v := range bc.Chain {

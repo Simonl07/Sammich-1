@@ -72,7 +72,9 @@ func Apply(w http.ResponseWriter, r *http.Request) {
 	uid := generateUID()
 	identityMap[uid] = sub.Id
 	userPubKeyMap[uid] = sub.PubKey
+	cachemux.Lock()
 	applicationCache[uid] = sub.Merit
+	cachemux.Unlock()
 }
 
 func flushCache2BC() {
@@ -124,12 +126,22 @@ func startTickin() {
 	}
 }
 
-// Fetch list of job applications
+// Fetch list of merits
 func FetchMerits(w http.ResponseWriter, r *http.Request) {
-	for i := 0; i < int(SBC.Length()); i++ {
-		//block := sbc.Get(i)
-		//TODO
+	jsonString, err := json.Marshal(SBC.ShowApplications())
+	if err != nil {
+		w.WriteHeader(500)
 	}
+	w.Write(jsonString)
+}
+
+// Fetch list of acceptances
+func FetchAcceptances(w http.ResponseWriter, r *http.Request) {
+	jsonString, err := json.Marshal(SBC.ShowAcceptances())
+	if err != nil {
+		w.WriteHeader(500)
+	}
+	w.Write(jsonString)
 }
 
 // Register a business and their public key
@@ -168,7 +180,9 @@ func Accept(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(500)
 		return
 	}
+	cachemux.Lock()
 	acceptanceCache[company] = uid
+	cachemux.Unlock()
 	// 3
 	identity, oki := identityMap[uid]
 	publicKey, okp := userPubKeyMap[uid]
