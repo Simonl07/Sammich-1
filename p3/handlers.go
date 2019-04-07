@@ -97,22 +97,23 @@ func flushCache2BC() {
 		}
 		applyMpt.Insert(string(k), string(inchainMeritJSON))
 		delete(applicationCache, k)
-		cnt += 1
+		cnt++
 	}
 
 	for k, v := range acceptanceCache {
 		acceptMpt.Insert(k, string(v))
 		delete(acceptanceCache, k)
-		cnt += 1
+		cnt++
 	}
 
-	if cnt > 1 {
+	if cnt >= 1 {
 		block := new(p2.Block)
 		if SBC.Length() == 0 {
-			block.Initial(SBC.Length()+1, "GENESIS", acceptMpt, applyMpt)
+			block.Initial(1, "GENESIS", acceptMpt, applyMpt)
 		} else {
-			parentBlock, _ := SBC.Get(SBC.Length() - 1)
-			block.Initial(SBC.Length()+1, parentBlock[0].Header.Hash, acceptMpt, applyMpt)
+			parentBlock, _ := SBC.Get(SBC.Length())
+			fmt.Println(parentBlock)
+			block.Initial(SBC.Length(), parentBlock[0].Header.Hash, acceptMpt, applyMpt)
 		}
 
 		SBC.Insert(*block)
@@ -142,6 +143,16 @@ func FetchAcceptances(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(500)
 	}
 	w.Write(jsonString)
+}
+
+func ViewCache(w http.ResponseWriter, r *http.Request) {
+	applicationCacheJSON, _ := json.Marshal(applicationCache)
+	w.Write([]byte("Application Cache"))
+	w.Write(applicationCacheJSON)
+	w.Write([]byte("\n"))
+	w.Write([]byte("Acceptance Cache: "))
+	acceptanceCacheJSON, _ := json.Marshal(acceptanceCache)
+	w.Write(acceptanceCacheJSON)
 }
 
 // Register a business and their public key
@@ -197,7 +208,7 @@ func Accept(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(500)
 	} else {
-		fmt.Print(jsonInfo)
+		w.Write((jsonInfo))
 	}
 }
 

@@ -86,7 +86,7 @@ func (blk *Block) EncodeToJson() (string, error) {
 
 // Get returns the list of Blocks at height level in the blockchain.
 func (bc *BlockChain) Get(height int32) []Block {
-	if bc.Chain == nil || bc.Length < height || height <= 0 {
+	if bc.Chain == nil || bc.Length < height || height < 0 {
 		return nil
 	}
 	return bc.Chain[height-1]

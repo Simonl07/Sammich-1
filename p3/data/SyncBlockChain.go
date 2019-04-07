@@ -1,6 +1,7 @@
 package data
 
 import (
+	"fmt"
 	"sync"
 
 	"../../p1"
@@ -51,6 +52,7 @@ func (sbc *SyncBlockChain) Insert(block p2.Block) {
 
 // Length length of SBC
 func (sbc *SyncBlockChain) Length() int32 {
+	fmt.Printf("Length: %v", sbc.bc.Length)
 	return sbc.bc.Length
 }
 

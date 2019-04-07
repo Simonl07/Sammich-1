@@ -37,6 +37,12 @@ var routes = Routes{
 		Accept,
 	},
 	Route{
+		"ViewCache",
+		"GET",
+		"/cache",
+		ViewCache,
+	},
+	Route{
 		"FetchMerits",
 		"GET",
 		"/view/merits",
