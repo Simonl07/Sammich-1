@@ -1,9 +1,10 @@
-import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.LinkedList;
 
-import org.json.simple.JSONArray; 
 import org.json.simple.JSONObject; 
 import org.json.simple.parser.*; 
 
@@ -11,6 +12,7 @@ import org.json.simple.parser.*;
 public class Driver {
 	
 	public static String resume_path = "/resume.json";
+	public static int numOfZero = 3;
 	
 	
 	public static void main(String[] args) {
@@ -40,11 +42,17 @@ public class Driver {
 			JSONObject resumeJSON = (JSONObject) obj;
 			int nonce = 0;
 			while(true) {
-				int hash = resumeJSON.toString().concat(Integer.toString(nonce)).hashCode();
-				if(Integer.toString(hash).startsWith("00000")) {
+				MessageDigest digest = MessageDigest.getInstance("SHA-256");
+				byte[] hash = digest.digest(resumeJSON.toString().concat(Integer.toString(nonce)).getBytes(StandardCharsets.UTF_8));
+				boolean flag = true;
+				for(int i = 0; i < numOfZero; i++) {
+					if(hash[i] != 0) {
+						flag = false;
+					}
+				}
+				if(flag) {
 					nonceList.add(nonce);
 				}
-				
 				nonce++;
 			}
 			
@@ -54,9 +62,12 @@ public class Driver {
 			
 			
 			
-		} catch (IOException | ParseException e) {
-			System.err.println("error during reading resume.json, please check your file and try again");
-			e.printStackTrace();
+		} catch (IOException e) {
+			System.err.println("file does not exist");
+		} catch (NoSuchAlgorithmException e) {
+			System.err.println("encryption error, this computer does not have such encryption method");
+		} catch (ParseException e) {
+			System.err.println("error during paring json file, please check the format and content");
 		}
 			
 		
