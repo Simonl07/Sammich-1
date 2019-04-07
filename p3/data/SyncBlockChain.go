@@ -1,9 +1,10 @@
 package data
 
 import (
+	"sync"
+
 	"../../p1"
 	"../../p2"
-	"sync"
 )
 
 type SyncBlockChain struct {
@@ -48,6 +49,11 @@ func (sbc *SyncBlockChain) Insert(block p2.Block) {
 	defer sbc.mux.Unlock()
 }
 
+// Length length of SBC
+func (sbc *SyncBlockChain) Length() int32 {
+	return sbc.bc.Length
+}
+
 // CheckParentHash adds the block if the parent hash exists
 func (sbc *SyncBlockChain) CheckParentHash(insertBlock p2.Block) bool {
 	sbc.mux.Lock()
@@ -81,12 +87,12 @@ func (sbc *SyncBlockChain) GenBlock(acceptMpt p1.MerklePatriciaTrie, applyMpt p1
 	return blk
 }
 
-func (sbc *SyncBlockChain) AddToChain(submissions []Submission) {
-	sbc.mux.Lock()
-	defer sbc.mux.Unlock()
-	sbc.bc.AddToChain(submissions)
-	submissions = nil
-}
+// func (sbc *SyncBlockChain) AddToChain(submissions []Submission) {
+// 	sbc.mux.Lock()
+// 	defer sbc.mux.Unlock()
+// 	sbc.bc.AddToChain(submissions)
+// 	submissions = nil
+// }
 
 // Show returns a string representation of the underlying blockchain
 func (sbc *SyncBlockChain) Show() string {

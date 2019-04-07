@@ -22,12 +22,12 @@ var routes = Routes{
 		"Show",
 		"GET",
 		"/view/chain",
-		FetchApplications,
+		Show,
 	},
 	Route{
 		"RegisterBusiness",
 		"POST",
-		"/register/{company}",
+		"/register",
 		RegisterBusiness,
 	},
 	Route{
@@ -40,7 +40,7 @@ var routes = Routes{
 		"FetchMerits",
 		"GET",
 		"/view/merits",
-		Show,
+		FetchMerits,
 	},
 	Route{
 		"Download",

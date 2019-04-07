@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"sync"
 	"time"
 
+	"../p1"
 	"../p2"
-	"../p3/data"
+	"./data"
 )
 
 // Chain
@@ -21,9 +23,9 @@ var userPubKeyMap map[int32]rsa.PublicKey
 var compPubKeyMap map[string]rsa.PublicKey
 
 //Caches for acceptance and application
-var applicationCache map[int32]Merit
+var applicationCache map[int32]data.Merit
 var acceptanceCache map[string]int32
-var CACHE_THRESHOLD = 3
+var cachemux sync.Mutex
 
 // UID count
 var UID int32
@@ -41,7 +43,7 @@ func init() {
 	compPubKeyMap = make(map[string]rsa.PublicKey)
 
 	// init Caches
-	applicationCache = make(map[int32]Merit)
+	applicationCache = make(map[int32]data.Merit)
 	acceptanceCache = make(map[string]int32)
 	// First 0-99 are reserved for potential testing
 	UID = 99
@@ -67,9 +69,6 @@ func Apply(w http.ResponseWriter, r *http.Request) {
 	identityMap[uid] = sub.Id
 	userPubKeyMap[uid] = sub.PubKey
 	applicationCache[uid] = sub.Merit
-	if len(application) > CACHE_THRESHOLD {
-		flushCache2BC()
-	}
 }
 
 func flushCache2BC() {
@@ -79,7 +78,7 @@ func flushCache2BC() {
 	applyMpt.Initial()
 
 	for k, v := range applicationCache {
-		inchainMerit := new(InchainMerit)
+		inchainMerit := new(data.InchainMerit)
 		inchainMerit.Skills = v.Skills
 		inchainMerit.Education = v.Education
 		inchainMerit.Experience = v.Experience
@@ -88,33 +87,30 @@ func flushCache2BC() {
 		if err != nil {
 			fmt.Print("UNABLE TO FLUSH CACHE TO BC")
 		}
-		applyMpt.Insert(k, inchainMeritJSON)
+		applyMpt.Insert(string(k), string(inchainMeritJSON))
 		delete(applicationCache, k)
 	}
 
 	for k, v := range acceptanceCache {
-		acceptMpt.Insert(k, v)
+		acceptMpt.Insert(k, string(v))
 		delete(acceptanceCache, k)
 	}
-	block := make(p2.Block)
-	if sbc.bc.Length == 0 {
-		block.Initial(sbc.bc.Length+1, "GENESIS", acceptMpt, applyMpt)
+	block := new(p2.Block)
+	if SBC.Length() == 0 {
+		block.Initial(SBC.Length()+1, "GENESIS", acceptMpt, applyMpt)
 	} else {
-		block.Initial(sbc.bc.Length+1, sbc.Get(sbc.bc.Length - 1)[0].Header.Hash, acceptMpt, applyMpt)
+		parentBlock, _ := SBC.Get(SBC.Length() - 1)
+		block.Initial(SBC.Length()+1, parentBlock[0].Header.Hash, acceptMpt, applyMpt)
 	}
 
-	sbc.Insert(block)
-}
-
-func addToChain() {
-	SBC.AddToChain(cache)
+	SBC.Insert(*block)
 }
 
 func startAddition() {
 	ticker := time.NewTicker(10 * time.Second)
 	go func() {
 		for range ticker.C {
-			addToChain()
+			flushCache2BC()
 		}
 	}()
 	// ticker.Stop()
@@ -122,8 +118,8 @@ func startAddition() {
 
 // Fetch list of job applications
 func FetchMerits(w http.ResponseWriter, r *http.Request) {
-	for i := 0; i < sbc.bc.Length; i++ {
-		block := sbc.Get(i)
+	for i := 0; i < int(SBC.Length()); i++ {
+		//block := sbc.Get(i)
 		//TODO
 	}
 }
@@ -136,13 +132,13 @@ func RegisterBusiness(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(500)
 		return
 	}
-	var reg Registration
+	var reg data.Registration
 	err = json.Unmarshal(body, &reg)
 	if err != nil {
 		w.WriteHeader(404)
 		return
 	}
-	compPubKeyMap[reg.CompanyName] = reg.PublicKey
+	compPubKeyMap[reg.CompanyName] = reg.PubKey
 }
 
 // Accept a user
@@ -152,8 +148,7 @@ func Accept(w http.ResponseWriter, r *http.Request) {
 			m = url path
 			make sure that H(m) == decrypt(signature, pub)
 		2. Add acceptance to cache
-		3. If cache overflow, flush to BC
-		4. Respond with Identity + PubKey of applicant
+		3. Respond with Identity + PubKey of applicant
 	*/
 }
 
