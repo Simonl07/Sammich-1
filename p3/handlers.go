@@ -60,6 +60,8 @@ func Apply(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// TODO: Verify Nonce
+	// TODO: BEFORE ALL THIS, we still need to verify this is a valid application
+	// VERIFY: signature & nonce
 	uid := generateUID()
 	identityMap[uid] = sub.Id
 	userPubKeyMap[uid] = sub.PubKey
@@ -109,8 +111,11 @@ func startAddition() {
 }
 
 // Fetch list of job applications
-func FetchApplications(w http.ResponseWriter, r *http.Request) {
+func FetchMerits(w http.ResponseWriter, r *http.Request) {
+	for i := 0; i < sbc.bc.Length; i++ {
+		block := sbc.Get(i)
 
+	}
 }
 
 // Register a business and their public key
