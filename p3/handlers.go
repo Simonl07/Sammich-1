@@ -128,7 +128,7 @@ func FetchMerits(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonString)
 }
 
-// Fetch list of job applications
+// Fetch list of acceptances
 func FetchAcceptances(w http.ResponseWriter, r *http.Request) {
 	jsonString, err := json.Marshal(SBC.ShowAcceptances())
 	if err != nil {
