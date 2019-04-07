@@ -166,6 +166,8 @@ func Accept(w http.ResponseWriter, r *http.Request) {
 		2. Add acceptance to cache
 		3. Respond with Identity + PubKey of applicant
 	*/
+	cachemux.Lock()
+	defer cachemux.Unlock()
 	vars := mux.Vars(r)
 	// 1
 	// 2
