@@ -1,0 +1,28 @@
+{
+	"Indentity": {
+		"Name": "Bob",
+		"Age": 24,
+		"Address": "this adress does not exist, San Francisco, CA, 99999",
+		"Email": "this_email_does_not_exist.com",
+		"Phone": "999-999-9999"
+	},
+	"Ments": {
+		"Skills": [
+			"Coding",
+			"Coding",
+			"Coding",
+			"Coding"
+		],
+		"Education": [
+			"BA in USF Computer Science",
+			"BS in USF Computer Science",
+			"Phd in USF Computer Science"
+		],
+		"Experiences": [
+			"Volunteer at student union",
+			"Intership in Google in 2014",
+			"Software developer in Fackbook in 2015"
+		]
+
+	}
+}
