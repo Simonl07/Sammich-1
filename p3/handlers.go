@@ -1,7 +1,6 @@
 package p3
 
 import (
-	"crypto/rsa"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -19,8 +18,8 @@ var SBC data.SyncBlockChain
 
 // In memory data structures
 var identityMap map[int32]data.Identity
-var userPubKeyMap map[int32]rsa.PublicKey
-var compPubKeyMap map[string]rsa.PublicKey
+var userPubKeyMap map[int32]string
+var compPubKeyMap map[string]string
 
 //Caches for acceptance and application
 var applicationCache map[int32]data.Merit
@@ -39,8 +38,8 @@ func init() {
 
 	// init data structures
 	identityMap = make(map[int32]data.Identity)
-	userPubKeyMap = make(map[int32]rsa.PublicKey)
-	compPubKeyMap = make(map[string]rsa.PublicKey)
+	userPubKeyMap = make(map[int32]string)
+	compPubKeyMap = make(map[string]string)
 
 	// init Caches
 	applicationCache = make(map[int32]data.Merit)
@@ -159,6 +158,13 @@ func Show(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(500)
 	}
 	w.WriteHeader(200)
+}
+
+func ShowKeys(w http.ResponseWriter, r *http.Request) {
+	compPubKeyMapJSON, _ := json.Marshal(compPubKeyMap)
+	w.Write(compPubKeyMapJSON)
+	userPubKeyMapJSON, _ := json.Marshal(userPubKeyMap)
+	w.Write(userPubKeyMapJSON)
 }
 
 // Download Blockchain
