@@ -77,6 +77,10 @@ func Apply(w http.ResponseWriter, r *http.Request) {
 	cachemux.Unlock()
 }
 
+func GetMerit(w http.ResponseWriter, r *http.Request) {
+
+}
+
 func flushCache2BC() {
 	acceptMpt := p1.MerklePatriciaTrie{}
 	acceptMpt.Initial()

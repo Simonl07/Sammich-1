@@ -66,4 +66,10 @@ var routes = Routes{
 		"/keys",
 		ShowKeys,
 	},
+	Route{
+		"GetMerit",
+		"GET",
+		"/merit/uid",
+		GetMerit,
+	},
 }
