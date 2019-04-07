@@ -2,17 +2,24 @@ package p3
 
 import (
 	"../p3/data"
+	"crypto/rsa"
 	"net/http"
 )
 
 var DEFAULT_PORT int32 = 6686
 
 var SBC data.SyncBlockChain
+var identityMap map[int32]data.Identity
+var userPubKeyMap map[int32]rsa.PublicKey
+var compPubKeyMap map[int32]rsa.PublicKey
 
 // init will be executed before everything else.
 // Some initialization will be done here.
 func init() {
 	SBC = data.NewBlockChain()
+	identityMap = make(map[int32]data.Identity)
+	userPubKeyMap = make(map[int32]rsa.PublicKey)
+	compPubKeyMap = make(map[int32]rsa.PublicKey)
 }
 
 // Apply submits the application for a given user
