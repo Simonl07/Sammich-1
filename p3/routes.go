@@ -36,4 +36,10 @@ var routes = Routes{
 		"/accept/{company}/{uid}",
 		Accept,
 	},
+	Route{
+		"Show",
+		"GET",
+		"/show",
+		Accept,
+	},
 }

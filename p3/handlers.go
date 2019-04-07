@@ -39,3 +39,8 @@ func RegisterBusiness(w http.ResponseWriter, r *http.Request) {
 func Accept(w http.ResponseWriter, r *http.Request) {
 
 }
+
+// Show Blockchain
+func Show(w http.ResponseWriter, r *http.Request) {
+
+}
