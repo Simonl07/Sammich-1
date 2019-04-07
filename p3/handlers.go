@@ -106,14 +106,14 @@ func flushCache2BC() {
 		cnt++
 	}
 
-	if cnt >= 1 {
+	if cnt > 0 {
 		block := new(p2.Block)
 		if SBC.Length() == 0 {
 			block.Initial(1, "GENESIS", acceptMpt, applyMpt)
 		} else {
 			parentBlock, _ := SBC.Get(SBC.Length())
 			fmt.Println(parentBlock)
-			block.Initial(SBC.Length(), parentBlock[0].Header.Hash, acceptMpt, applyMpt)
+			block.Initial(SBC.Length()+1, parentBlock[0].Header.Hash, acceptMpt, applyMpt)
 		}
 
 		SBC.Insert(*block)
@@ -184,14 +184,15 @@ func Accept(w http.ResponseWriter, r *http.Request) {
 	// 2
 	company := vars["company"]
 	uidTemp, err := strconv.Atoi(vars["uid"])
+
+	fmt.Println(company)
+	fmt.Println(uidTemp)
 	uid := int32(uidTemp)
 	if err != nil {
 		w.WriteHeader(500)
 		return
 	}
-	cachemux.Lock()
 	acceptanceCache[company] = uid
-	cachemux.Unlock()
 	// 3
 	identity, oki := identityMap[uid]
 	publicKey, okp := userPubKeyMap[uid]

@@ -147,7 +147,7 @@ func (bc *BlockChain) ShowAcceptances() map[string]int32 {
 
 	for _, v := range bc.Chain {
 		blk := v[0]
-		for k2, v2 := range blk.ApplyValue.Values.Db {
+		for k2, v2 := range blk.AcceptValue.Values.Db {
 			uid, err := strconv.Atoi(v2)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Could not show %s accept with %s\n", k2, v2)
