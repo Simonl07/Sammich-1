@@ -71,7 +71,9 @@ func Apply(w http.ResponseWriter, r *http.Request) {
 	uid := generateUID()
 	identityMap[uid] = sub.Id
 	userPubKeyMap[uid] = sub.PubKey
+	cachemux.Lock()
 	applicationCache[uid] = sub.Merit
+	cachemux.Unlock()
 }
 
 func flushCache2BC() {
@@ -113,7 +115,9 @@ func startTickin() {
 	ticker := time.NewTicker(10 * time.Second)
 	go func() {
 		for range ticker.C {
+			cachemux.Lock()
 			flushCache2BC()
+			cachemux.Unlock()
 		}
 	}()
 	// ticker.Stop()
@@ -173,7 +177,9 @@ func Accept(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(500)
 		return
 	}
+	cachemux.Lock()
 	acceptanceCache[company] = uid
+	cachemux.Unlock()
 	// 3
 	identity, oki := identityMap[uid]
 	publicKey, okp := userPubKeyMap[uid]
