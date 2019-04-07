@@ -105,7 +105,7 @@ func flushCache2BC() {
 	}
 
 	for k, v := range acceptanceCache {
-		acceptMpt.Insert(k, string(v))
+		acceptMpt.Insert(k, strconv.Itoa(int(v)))
 		delete(acceptanceCache, k)
 		cnt++
 	}
