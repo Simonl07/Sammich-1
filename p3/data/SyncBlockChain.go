@@ -1,6 +1,9 @@
 package data
 
 import (
+	"encoding/json"
+	"fmt"
+	"os"
 	"sync"
 
 	"../../p1"
@@ -93,10 +96,26 @@ func (sbc *SyncBlockChain) ShowAcceptances() map[string]int32 {
 	return sbc.bc.ShowAcceptances()
 }
 
-func (sbc *SyncBlockChain) ShowApplications() []string {
+func (sbc *SyncBlockChain) ShowApplications() string {
 	sbc.mux.Lock()
 	defer sbc.mux.Unlock()
-	return sbc.bc.ShowApplications()
+	applications := sbc.bc.ShowApplications()
+	var merits []InchainMerit
+	for _, v := range applications {
+		m := InchainMerit{}
+		err := json.Unmarshal([]byte(v), &m)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Could not add %s\n", v)
+			continue
+		}
+		merits = append(merits, m)
+	}
+	res, err := json.Marshal(&merits)
+	if err != nil {
+		return ""
+	}
+
+	return string(res)
 }
 
 // Show returns a string representation of the underlying blockchain

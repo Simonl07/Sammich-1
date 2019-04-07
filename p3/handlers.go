@@ -106,7 +106,7 @@ func flushCache2BC() {
 		cnt += 1
 	}
 
-	if cnt > 1 {
+	if cnt >= 1 {
 		block := new(p2.Block)
 		if SBC.Length() == 0 {
 			block.Initial(SBC.Length()+1, "GENESIS", acceptMpt, applyMpt)
@@ -128,11 +128,7 @@ func startTickin() {
 
 // Fetch list of merits
 func FetchMerits(w http.ResponseWriter, r *http.Request) {
-	jsonString, err := json.Marshal(SBC.ShowApplications())
-	if err != nil {
-		w.WriteHeader(500)
-	}
-	w.Write(jsonString)
+	w.Write([]byte(SBC.ShowApplications()))
 }
 
 // Fetch list of acceptances
