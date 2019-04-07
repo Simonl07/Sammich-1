@@ -10,11 +10,19 @@ import (
 	"../p3/data"
 )
 
+// Chain
 var SBC data.SyncBlockChain
+
+// In memory data structures
 var identityMap map[int32]data.Identity
 var userPubKeyMap map[int32]rsa.PublicKey
 var compPubKeyMap map[string]rsa.PublicKey
-var cache []data.Submission
+
+//Caches for acceptance and application
+var applicationCache []data.Submission
+var acceptanceCache map[string]int32
+
+// UID count
 var UID int32
 
 // init will be executed before everything else.
@@ -46,7 +54,9 @@ func Apply(w http.ResponseWriter, r *http.Request) {
 	identityMap[uid] = sub.Id
 	userPubKeyMap[uid] = sub.PubKey
 	cache = append(cache, sub)
-	SBC.AddToChain(cache)
+	if len(cache) > 3 {
+
+	}
 }
 
 func addToChain() {
