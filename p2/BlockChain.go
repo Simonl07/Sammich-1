@@ -1,17 +1,17 @@
 package p2
 
 import (
-	"../p1"
-	"Sammich/p3/data"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"golang.org/x/crypto/sha3"
 	"os"
 	"sort"
 	"strconv"
 	"time"
+
+	"../p1"
+	"golang.org/x/crypto/sha3"
 )
 
 // Block is a struct that contains information for a block in the blockchain.

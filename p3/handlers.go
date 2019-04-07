@@ -160,6 +160,7 @@ func Show(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(200)
 }
 
+//
 func ShowKeys(w http.ResponseWriter, r *http.Request) {
 	compPubKeyMapJSON, _ := json.Marshal(compPubKeyMap)
 	w.Write(compPubKeyMapJSON)
