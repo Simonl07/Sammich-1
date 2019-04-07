@@ -21,7 +21,6 @@ import org.json.simple.parser.*;
 public class Driver {
 	
 	public static String resume_path = "/resume.json";
-	public static int numOfZero = 3;
 	
 	
 	public static void main(String[] args) {
@@ -47,16 +46,17 @@ public class Driver {
 			PublicKey pub = kp.getPublic();
 			PrivateKey prv = kp.getPrivate();
 			String signature = "";
+			String hexString = "";
 			while(true) {
+				//hashing with SHA-256
 				MessageDigest digest = MessageDigest.getInstance("SHA-256");
 				byte[] hash = digest.digest(resumeJSON.toString().concat(Integer.toString(nonce)).getBytes(StandardCharsets.UTF_8));
-				String hexString = byteArrayToHex(hash);
-				
+				hexString = byteArrayToHex(hash).trim();
 				
 				
 				if(hexString.startsWith("00")) {
 					System.out.println(hexString);
-					signature = sign(prv, hash);
+					signature = sign(prv, hash).trim();
 					break;
 				}
 				System.out.println("nonce is " + nonce);
@@ -64,25 +64,10 @@ public class Driver {
 			}
 			
 			//send the pub key and hash to server
-//			System.out.println("the encrypt is: ");
-//			System.out.println("===============");
-//			System.out.println(signature);
-//			System.out.println("===============");
-			
-			
 			byte[] decry = decrypt(signature, pub);
 			
-			String test = byteArrayToHex(decry);
-//			System.out.println("test is ");
-//			System.out.println("==============");
-			System.out.println(test);
-//			System.out.println("==============");
-			System.out.println(test == signature ? "yes" : "no");
-			System.out.printf("sign length is %d\n", signature.length());
-			System.out.printf("test length is %d\n", test.length());
-			if(test.equals(signature)) {
-				System.err.println("yes!!!!!!!!!!!!!!!!!");
-			}
+			//drcrypted hashing
+			String test = byteArrayToHex(decry).trim();
 			
 			
 			
@@ -132,18 +117,14 @@ public class Driver {
 		
 		byte[] obuf;
 		try {
+			
 			Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
 			cipher.init(Cipher.DECRYPT_MODE, pub);
-			
-			
-			
-			
 			byte[] hexString = fromHexString(signature);
 			obuf = cipher.update(hexString, 0, hexString.length);
 			obuf = cipher.doFinal();
 			return obuf;
 		} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return null;
 		}
