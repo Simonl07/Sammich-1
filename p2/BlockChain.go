@@ -1,15 +1,15 @@
 package p2
 
 import (
-	"../p1"
-	"Sammich/p3/data"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"golang.org/x/crypto/sha3"
 	"sort"
 	"time"
+
+	"../p1"
+	"golang.org/x/crypto/sha3"
 )
 
 // Block is a struct that contains information for a block in the blockchain.
@@ -170,27 +170,27 @@ func (bc *BlockChain) GenBlock(acceptMpt p1.MerklePatriciaTrie, applyMpt p1.Merk
 }
 
 // GenBlock generates the next block at the next height
-func (bc *BlockChain) AddToChain(subs []data.Submission) error {
-	if bc.Length == 0 || len(bc.Chain[bc.Length-1]) == 0 {
-		return Block{}, errors.New("missing parent")
-	}
-	acceptMpt := p1.MerklePatriciaTrie{}
-	acceptMpt.Initial()
-	applyMpt := p1.MerklePatriciaTrie{}
-	applyMpt.Initial()
-	for _, v := range subs {
-		sbc.bc.AddToChain(submissions)
-	}	block := Block{}
-	block.Initial(bc.Length+1, bc.Chain[bc.Length-1][0].Header.Hash, acceptMpt, applyMpt)
-	for _, v := range subs {
-		sbc.bc.AddToChain(submissions)
-	}	block := Block{}
-	block.Initial(bc.Length+1, bc.Chain[bc.Length-1][0].Header.Hash, acceptMpt, applyMpt)
-	//fmt.Printf("Able to add %s to %+v\n", block.Header.Hash, bc.Chain[block.Header.Height-1])
-	bc.Chain[bc.Length] = append(bc.Chain[bc.Length], block)
-	bc.Length++
-	return block, nil
-}
+// func (bc *BlockChain) AddToChain(subs []data.Submission) error {
+// 	if bc.Length == 0 || len(bc.Chain[bc.Length-1]) == 0 {
+// 		return Block{}, errors.New("missing parent")
+// 	}
+// 	acceptMpt := p1.MerklePatriciaTrie{}
+// 	acceptMpt.Initial()
+// 	applyMpt := p1.MerklePatriciaTrie{}
+// 	applyMpt.Initial()
+// 	for _, v := range subs {
+// 		sbc.bc.AddToChain(submissions)
+// 	}	block := Block{}
+// 	block.Initial(bc.Length+1, bc.Chain[bc.Length-1][0].Header.Hash, acceptMpt, applyMpt)
+// 	for _, v := range subs {
+// 		sbc.bc.AddToChain(submissions)
+// 	}	block := Block{}
+// 	block.Initial(bc.Length+1, bc.Chain[bc.Length-1][0].Header.Hash, acceptMpt, applyMpt)
+// 	//fmt.Printf("Able to add %s to %+v\n", block.Header.Hash, bc.Chain[block.Header.Height-1])
+// 	bc.Chain[bc.Length] = append(bc.Chain[bc.Length], block)
+// 	bc.Length++
+// 	return block, nil
+// }
 
 // GetHighest returns the list of blocks at the highest height
 func (bc *BlockChain) GetHighest() ([]Block, error) {

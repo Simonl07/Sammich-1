@@ -1,10 +1,11 @@
 package main
 
 import (
-	"./p3"
 	"log"
 	"net/http"
 	"os"
+
+	"./p3"
 )
 
 func main() {
@@ -12,6 +13,6 @@ func main() {
 	if len(os.Args) > 1 {
 		log.Fatal(http.ListenAndServe(":"+os.Args[1], router))
 	} else {
-		log.Fatal(http.ListenAndServe(":6686", router))
+		log.Fatal(http.ListenAndServe(":8088", router))
 	}
 }
