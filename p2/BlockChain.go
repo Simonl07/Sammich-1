@@ -8,14 +8,14 @@ import (
 	"fmt"
 	"golang.org/x/crypto/sha3"
 	"sort"
-	"strings"
 	"time"
 )
 
 // Block is a struct that contains information for a block in the blockchain.
 type Block struct {
-	Header Header                `json:"-"`
-	Value  p1.MerklePatriciaTrie `json:"-"`
+	Header      Header                `json:"header"`
+	AcceptValue p1.MerklePatriciaTrie `json:"acceptance"`
+	ApplyValue  p1.MerklePatriciaTrie `json:"application"`
 }
 
 // Header contains all the header information in a block.
@@ -24,7 +24,8 @@ type Header struct {
 	Timestamp  int64  `json:"timeStamp"`
 	Height     int32  `json:"height"`
 	ParentHash string `json:"parentHash"`
-	Size       int32  `json:"size"`
+	// Size is the size of the two mpt added together
+	Size int32 `json:"size"`
 }
 
 // BlockChain contains the highest length of the BlockChain and the Chain of the blockchain.
@@ -33,69 +34,47 @@ type BlockChain struct {
 	Length int32
 }
 
-// BlockJson contains the JSON version of a Block.
-type BlockJson struct {
-	Height     int32             `json:"height"`
-	Timestamp  int64             `json:"timeStamp"`
-	Hash       string            `json:"hash"`
-	ParentHash string            `json:"parentHash"`
-	Size       int32             `json:"size"`
-	MPT        map[string]string `json:"mpt"`
-}
-
+// NewBlockChain returns a new blockchain
 func NewBlockChain() BlockChain {
 	return BlockChain{Chain: make(map[int32][]Block), Length: 0}
 }
 
 // Initial is the constructor for Block. The timestamp is taken at creation time. It is assumed that proper care
 // will be taken to match the parentHash to the corresponding parent.
-func (blk *Block) Initial(height int32, parentHash string, value p1.MerklePatriciaTrie) error {
+func (blk *Block) Initial(height int32, parentHash string, acceptValue p1.MerklePatriciaTrie,
+	applyValue p1.MerklePatriciaTrie) error {
 	timeStamp := time.Now().Unix()
-	size := int32(len([]byte(fmt.Sprint(value))))
-	blk.Header = Header{hashString(string(height) + string(timeStamp) + parentHash + value.Root +
-		string(size)), timeStamp,
-		height, parentHash, size}
-	blk.Value = value
+	size := int32(len([]byte(fmt.Sprint(acceptValue))) + len([]byte(fmt.Sprint(applyValue))))
+	blk.Header = Header{hashString(string(height) + string(timeStamp) + parentHash + acceptValue.Root +
+		applyValue.Root + string(size)), timeStamp, height, parentHash, size}
+	blk.AcceptValue = acceptValue
+	blk.ApplyValue = applyValue
 	return nil
 }
 
 // NewBlock is a special constructor for Block that allows for a manual input for the timestamp.
 // This is useful for test applications.
-func (blk *Block) NewBlock(height int32, timeStamp int64, parentHash string, value p1.MerklePatriciaTrie) error {
-	size := int32(len([]byte(fmt.Sprint(value))))
-	blk.Header = Header{hashString(string(height) + string(timeStamp) + parentHash + value.Root +
-		string(size)), timeStamp, height, parentHash, size}
-	blk.Value = value
+func (blk *Block) NewBlock(height int32, timeStamp int64, parentHash string, acceptValue p1.MerklePatriciaTrie,
+	applyValue p1.MerklePatriciaTrie) error {
+	size := int32(len([]byte(fmt.Sprint(acceptValue))) + len([]byte(fmt.Sprint(applyValue))))
+	blk.Header = Header{hashString(string(height) + string(timeStamp) + parentHash + acceptValue.Root +
+		applyValue.Root + string(size)), timeStamp, height, parentHash, size}
+	blk.AcceptValue = acceptValue
+	blk.ApplyValue = applyValue
 	return nil
 }
 
 // DecodeFromJson decodes a JSON string into blk.
 // An error is returned if json.Unmarshal is unable to decode the string.
-// TODO: Consider using BlockJson instead. Either should work though.
 func (blk *Block) DecodeFromJson(jsonString string) error {
-	var header Header
-	var valueDb p1.ValueDb
-
-	err := json.Unmarshal([]byte(jsonString), &struct {
-		*Header
-		*p1.ValueDb
-	}{&header, &valueDb})
-	blk.Header = header
-	mpt := p1.MerklePatriciaTrie{}
-	for k, v := range valueDb.Db {
-		mpt.Insert(k, v)
-	}
-	blk.Value = mpt
+	err := json.Unmarshal([]byte(jsonString), &blk)
 	return err
 }
 
 // EncodeToJson encodes a block to a JSON string. This string is returned.
 // If the value could not be encoded, an error will be thrown.
 func (blk *Block) EncodeToJson() (string, error) {
-	res, err := json.Marshal(struct {
-		*Header
-		*p1.ValueDb
-	}{&blk.Header, &blk.Value.Values})
+	res, err := json.Marshal(blk)
 	if err != nil {
 		return "", err
 	}
@@ -146,43 +125,18 @@ func (bc *BlockChain) Insert(block Block) error {
 // DecodeFromJson decodes jsonString into the bc BlockChain.
 // An error is thrown if json.UnMarshal could not decode the string.
 func (bc *BlockChain) DecodeFromJson(jsonString string) error {
-	var ls []BlockJson
-	err := json.Unmarshal([]byte(jsonString), &ls)
-	if err != nil {
-		return err
-	}
-	var maxLength int32 = 0
-	for _, v := range ls {
-		if v.Height > maxLength {
-			maxLength = v.Height
-		}
-		err2 := bc.Insert(Block{Header{v.Hash, v.Timestamp, v.Height, v.ParentHash,
-			v.Size}, constructMpt(v.MPT)})
-		if err2 != nil {
-			return err2
-		}
-	}
-	return nil
+	err := json.Unmarshal([]byte(jsonString), &bc)
+	return err
 }
 
 // EncodeToJson encodes the blockchain bc to a JSON string. This string is returned.
 // An error is thrown if blockchain could not be encoded.
 func (bc *BlockChain) EncodeToJson() (string, error) {
-	var jsonString strings.Builder
-	jsonString.WriteString("[")
-	elem := 0
-	for i := 0; i < int(bc.Length); i++ {
-		for _, v := range bc.Chain[int32(i)] {
-			blkStr, err := v.EncodeToJson()
-			if err == nil {
-				jsonString.WriteString(blkStr + ", ")
-			} else {
-				return "[]", err
-			}
-		}
-		elem++
+	resp, err := json.Marshal(bc)
+	if err != nil {
+		return "", err
 	}
-	return strings.TrimRight(jsonString.String(), ", ") + "]", nil
+	return string(resp), nil
 }
 
 // constructMpt takes a map of string, string and inserts each value into a MerklePatriciaTrie.
@@ -202,12 +156,12 @@ func hashString(str string) string {
 }
 
 // GenBlock generates the next block at the next height
-func (bc *BlockChain) GenBlock(mpt p1.MerklePatriciaTrie) (Block, error) {
+func (bc *BlockChain) GenBlock(acceptMpt p1.MerklePatriciaTrie, applyMpt p1.MerklePatriciaTrie) (Block, error) {
 	if bc.Length == 0 || len(bc.Chain[bc.Length-1]) == 0 {
 		return Block{}, errors.New("missing parent")
 	}
 	block := Block{}
-	block.Initial(bc.Length+1, bc.Chain[bc.Length-1][0].Header.Hash, mpt)
+	block.Initial(bc.Length+1, bc.Chain[bc.Length-1][0].Header.Hash, acceptMpt, applyMpt)
 	//fmt.Printf("Able to add %s to %+v\n", block.Header.Hash, bc.Chain[block.Header.Height-1])
 	bc.Chain[bc.Length] = append(bc.Chain[bc.Length], block)
 	bc.Length++
@@ -225,7 +179,7 @@ func (bc *BlockChain) GetHighest() ([]Block, error) {
 }
 
 // CheckParentHash adds the block to the blockchain if the parent exists,
-// otherwise flase is returned.
+// otherwise false is returned.
 func (bc *BlockChain) CheckParentHash(insertBlock Block) bool {
 	if bc.Length == 0 || insertBlock.Header.Height < 2 || len(bc.Chain[insertBlock.Header.Height-2]) == 0 {
 		return false
