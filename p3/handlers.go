@@ -20,14 +20,17 @@ func Apply(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// Fetch list of job applications
 func FetchApplications(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// Register a business and their public key
 func RegisterBusiness(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// Accept a user
 func Accept(w http.ResponseWriter, r *http.Request) {
 
 }
