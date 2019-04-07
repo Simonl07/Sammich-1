@@ -26,6 +26,11 @@ type Submission struct {
 	PubKey rsa.PublicKey
 }
 
+type Registration struct {
+	CompanyName string
+	PubKey      rsa.PublicKey
+}
+
 func NewIdentity(name string, age int32, address string, email string, phone string) *Identity {
 	return &Identity{Name: name, Age: age, Address: address, Email: email, Phone: phone}
 }
