@@ -1,6 +1,7 @@
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.LinkedList;
 
 import org.json.simple.JSONArray; 
 import org.json.simple.JSONObject; 
@@ -31,12 +32,20 @@ public class Driver {
 	 */
 	private static void readResume() {
 		String cwd = System.getProperty("user.dir");
+		LinkedList<Integer> nonceList = new LinkedList<Integer>();
+		
 		
 		try {
 			Object obj = new JSONParser().parse(new FileReader(cwd.concat(resume_path)));
 			JSONObject resumeJSON = (JSONObject) obj;
+			int nonce = 0;
 			while(true) {
-				HashCode hash = resumeJSON
+				int hash = resumeJSON.toString().concat(Integer.toString(nonce)).hashCode();
+				if(Integer.toString(hash).startsWith("00000")) {
+					nonceList.add(nonce);
+				}
+				
+				nonce++;
 			}
 			
 			
