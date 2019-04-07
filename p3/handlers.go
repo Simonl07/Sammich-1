@@ -42,5 +42,9 @@ func Accept(w http.ResponseWriter, r *http.Request) {
 
 // Show Blockchain
 func Show(w http.ResponseWriter, r *http.Request) {
-
+	_, err := w.Write([]byte(SBC.Show()))
+	if err != nil {
+		w.WriteHeader(500)
+	}
+	w.WriteHeader(200)
 }
