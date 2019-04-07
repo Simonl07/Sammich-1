@@ -34,7 +34,7 @@ func NewMerits(skills []string, education []string, experience []string) *Merits
 	return &Merits{Skills: skills, Education: education, Experience: experience}
 }
 
-func decodeSubmissionJson(jsonString string) (Submission, error) {
+func DecodeSubmissionJson(jsonString string) (Submission, error) {
 	var sub Submission
 	err := json.Unmarshal([]byte(jsonString), &sub)
 	if err != nil {
