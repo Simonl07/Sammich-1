@@ -13,7 +13,7 @@ type Identity struct {
 	Phone   string
 }
 
-type Merits struct {
+type Merit struct {
 	Skills     []string
 	Education  []string
 	Experience []string
@@ -22,7 +22,7 @@ type Merits struct {
 type Submission struct {
 	Nonce  int32
 	Id     Identity
-	Merit  Merits
+	Merit  Merit
 	PubKey rsa.PublicKey
 }
 
@@ -35,8 +35,8 @@ func NewIdentity(name string, age int32, address string, email string, phone str
 	return &Identity{Name: name, Age: age, Address: address, Email: email, Phone: phone}
 }
 
-func NewMerits(skills []string, education []string, experience []string) *Merits {
-	return &Merits{Skills: skills, Education: education, Experience: experience}
+func NewMerits(skills []string, education []string, experience []string) *Merit {
+	return &Merit{Skills: skills, Education: education, Experience: experience}
 }
 
 func DecodeSubmissionJson(jsonString []byte) (Submission, error) {
