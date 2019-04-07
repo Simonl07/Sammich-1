@@ -70,40 +70,15 @@ func (sbc *SyncBlockChain) BlockChainToJson() (string, error) {
 }
 
 // GenBlock generates a block at the next height
-func (sbc *SyncBlockChain) GenBlock(mpt p1.MerklePatriciaTrie) p2.Block {
+func (sbc *SyncBlockChain) GenBlock(acceptMpt p1.MerklePatriciaTrie, applyMpt p1.MerklePatriciaTrie) p2.Block {
 	sbc.mux.Lock()
 	defer sbc.mux.Unlock()
-	blk, err := sbc.bc.GenBlock(mpt)
+	blk, err := sbc.bc.GenBlock(acceptMpt, applyMpt)
 	if err != nil {
 		return p2.Block{}
 	}
 	// TODO: Check error
 	return blk
-}
-
-// A simple generation method that adds the key and value to the mpt.
-func (sbc *SyncBlockChain) SimpleGenBlock(key string, value string) (p2.Block, error) {
-	sbc.mux.Lock()
-	defer sbc.mux.Unlock()
-	prevBlkList, err := sbc.bc.GetHighest()
-	if err != nil {
-		//rootBlk := p2.Block{}
-		//mpt := p1.MerklePatriciaTrie{}
-		//mpt.Initial()
-		//mpt.Insert(key, value)
-		//rootBlk.Initial(1, "gen root", mpt)
-		//sbc.bc.Insert(rootBlk)
-		//return rootBlk
-		return p2.Block{}, err
-	}
-	mpt := prevBlkList[0].Value.Clone()
-	mpt.Insert(key, value)
-	blk, err2 := sbc.bc.GenBlock(mpt)
-	if err2 != nil {
-		return p2.Block{}, err2
-	}
-	// TODO: Check error
-	return blk, nil
 }
 
 // Show returns a string representation of the underlying blockchain

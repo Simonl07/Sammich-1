@@ -6,8 +6,6 @@ import (
 	"net/http"
 )
 
-var DEFAULT_PORT int32 = 6686
-
 var SBC data.SyncBlockChain
 var identityMap map[int32]data.Identity
 var userPubKeyMap map[int32]rsa.PublicKey

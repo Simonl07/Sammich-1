@@ -14,6 +14,9 @@ type Merits struct {
 	Experience []string
 }
 
+type Submission struct {
+}
+
 func NewIdentity(name string, age int32, address string, email string, phone string) *Identity {
 	return &Identity{Name: name, Age: age, Address: address, Email: email, Phone: phone}
 }
