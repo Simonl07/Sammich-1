@@ -48,4 +48,10 @@ var routes = Routes{
 		"/download",
 		Download,
 	},
+	Route{
+		"ShowKeys",
+		"GET",
+		"/keys",
+		ShowKeys,
+	},
 }

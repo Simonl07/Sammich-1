@@ -46,6 +46,8 @@ func init() {
 	acceptanceCache = make(map[string]int32)
 	// First 0-99 are reserved for potential testing
 	UID = 99
+
+	startTickin()
 }
 
 // Apply submits the application for a given user
@@ -105,7 +107,7 @@ func flushCache2BC() {
 	SBC.Insert(*block)
 }
 
-func startAddition() {
+func startTickin() {
 	ticker := time.NewTicker(10 * time.Second)
 	go func() {
 		for range ticker.C {
@@ -160,10 +162,13 @@ func Show(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(200)
 }
 
-//
+// ShowKeys show all the keys
 func ShowKeys(w http.ResponseWriter, r *http.Request) {
 	compPubKeyMapJSON, _ := json.Marshal(compPubKeyMap)
+	w.Write([]byte("Company Public Keys: "))
 	w.Write(compPubKeyMapJSON)
+	w.Write([]byte("\n"))
+	w.Write([]byte("Applicant Public Keys: "))
 	userPubKeyMapJSON, _ := json.Marshal(userPubKeyMap)
 	w.Write(userPubKeyMapJSON)
 }
