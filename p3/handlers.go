@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"sync"
 	"time"
 
 	"../p1"
 	"../p2"
 	"./data"
+	"github.com/gorilla/mux"
 )
 
 // Chain
@@ -151,6 +153,33 @@ func Accept(w http.ResponseWriter, r *http.Request) {
 		2. Add acceptance to cache
 		3. Respond with Identity + PubKey of applicant
 	*/
+	vars := mux.Vars(r)
+	// 1
+	// 2
+	company := vars["company"]
+	uidTemp, err := strconv.Atoi(vars["uid"])
+	uid := int32(uidTemp)
+	if err != nil {
+		w.WriteHeader(500)
+		return
+	}
+	acceptanceCache[company] = uid
+	// 3
+	identity, oki := identityMap[uid]
+	publicKey, okp := userPubKeyMap[uid]
+	if !oki || !okp {
+		fmt.Print("UNABLE TO GET USER INFO")
+	}
+	type info struct {
+		Idt data.Identity `json:"identity"`
+		Pk  string        `json:"publicKey"`
+	}
+	jsonInfo, err := json.Marshal(info{identity, publicKey})
+	if err != nil {
+		w.WriteHeader(500)
+	} else {
+		fmt.Print(jsonInfo)
+	}
 }
 
 // Show Blockchain
