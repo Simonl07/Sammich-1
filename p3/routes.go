@@ -19,9 +19,9 @@ var routes = Routes{
 		Apply,
 	},
 	Route{
-		"FetchApplications",
+		"Show",
 		"GET",
-		"/fetch",
+		"/view/chain",
 		FetchApplications,
 	},
 	Route{
@@ -37,9 +37,9 @@ var routes = Routes{
 		Accept,
 	},
 	Route{
-		"Show",
+		"FetchMerits",
 		"GET",
-		"/show",
+		"/view/merits",
 		Show,
 	},
 	Route{
