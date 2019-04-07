@@ -69,8 +69,6 @@ public class Driver {
 			//drcrypted hashing
 			String test = byteArrayToHex(decry).trim();
 
-
-
 		} catch (IOException e) {
 			System.err.println("file does not exist");
 		} catch (NoSuchAlgorithmException e) {
