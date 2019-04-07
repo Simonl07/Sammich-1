@@ -55,11 +55,9 @@ public class Driver {
 				hexString = byteArrayToHex(hash).trim();
 
 				if(hexString.startsWith("0000")) {
-					System.out.println(hexString);
 					signature = sign(prv, hash).trim();
 					break;
 				}
-				System.out.println("nonce is " + nonce);
 				nonce++;
 			}
 
@@ -68,6 +66,14 @@ public class Driver {
 
 			//drcrypted hashing
 			String test = byteArrayToHex(decry).trim();
+			
+			JSONObject idObj = new JSONObject();
+			idObj.put("Name", "")
+			
+			
+			
+			
+			
 
 		} catch (IOException e) {
 			System.err.println("file does not exist");
