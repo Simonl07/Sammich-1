@@ -84,9 +84,8 @@ func (sbc *SyncBlockChain) GenBlock(acceptMpt p1.MerklePatriciaTrie, applyMpt p1
 func (sbc *SyncBlockChain) AddToChain(submissions []Submission) {
 	sbc.mux.Lock()
 	defer sbc.mux.Unlock()
-	for _, v := range submissions {
-		v.
-	}
+	sbc.bc.AddToChain(submissions)
+	submissions = nil
 }
 
 // Show returns a string representation of the underlying blockchain
