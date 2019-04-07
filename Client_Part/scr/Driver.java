@@ -21,7 +21,6 @@ import org.json.simple.parser.*;
 public class Driver {
 	
 	public static String resume_path = "/resume.json";
-	public static int numOfZero = 3;
 	
 	
 	public static void main(String[] args) {
@@ -46,28 +45,29 @@ public class Driver {
 			
 			PublicKey pub = kp.getPublic();
 			PrivateKey prv = kp.getPrivate();
-			
+			String signature = "";
+			String hexString = "";
 			while(true) {
+				//hashing with SHA-256
 				MessageDigest digest = MessageDigest.getInstance("SHA-256");
 				byte[] hash = digest.digest(resumeJSON.toString().concat(Integer.toString(nonce)).getBytes(StandardCharsets.UTF_8));
-				boolean flag = true;
-				for(int i = 0; i < numOfZero; i++) {
-					if(hash[i] != 0) {
-						flag = false;
-						
-					}
-				}
-				if(flag) {
-					sign(prv, hash);
+				hexString = byteArrayToHex(hash).trim();
+				
+				
+				if(hexString.startsWith("00")) {
+					System.out.println(hexString);
+					signature = sign(prv, hash).trim();
 					break;
 				}
+				System.out.println("nonce is " + nonce);
 				nonce++;
 			}
 			
 			//send the pub key and hash to server
+			byte[] decry = decrypt(signature, pub);
 			
-			
-			
+			//drcrypted hashing
+			String test = byteArrayToHex(decry).trim();
 			
 			
 			
@@ -80,6 +80,16 @@ public class Driver {
 		}
 	}
 	
+	public static byte[] fromHexString(String s) {
+	    int len = s.length();
+	    byte[] data = new byte[len / 2];
+	    for (int i = 0; i < len; i += 2) {
+	        data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
+	                             + Character.digit(s.charAt(i+1), 16));
+	    }
+	    return data;
+	}
+	
 	public static String byteArrayToHex(byte[] a) {
 		   StringBuilder sb = new StringBuilder(a.length * 2);
 		   for(byte b: a)
@@ -89,19 +99,38 @@ public class Driver {
 	
 	public static String sign(PrivateKey pry, byte[] hash) {
 		
-		byte[] obuf = new byte[] {};
+		byte[] obuf;
 		try {
 			Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-			cipher.init(Cipher.DECRYPT_MODE, pry);
+			cipher.init(Cipher.ENCRYPT_MODE, pry);
 			obuf = cipher.update(hash, 0, hash.length);
 			obuf = cipher.doFinal();
-			
+			return byteArrayToHex(obuf);
 		} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			return null;
 		}
-		return byteArrayToHex(obuf);
+	}
 	
+	public static byte[] decrypt(String signature, PublicKey pub) {
+		
+		byte[] obuf;
+		try {
+			
+			Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+			cipher.init(Cipher.DECRYPT_MODE, pub);
+			byte[] hexString = fromHexString(signature);
+			obuf = cipher.update(hexString, 0, hexString.length);
+			obuf = cipher.doFinal();
+			return obuf;
+		} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
+			e.printStackTrace();
+			return null;
+		}
+		
+		
+		
 	}
 
 }
