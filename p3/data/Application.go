@@ -1,7 +1,6 @@
 package data
 
 import (
-	"crypto/rsa"
 	"encoding/json"
 )
 
@@ -27,15 +26,16 @@ type InchainMerit struct {
 }
 
 type Submission struct {
-	Nonce  int32
-	Id     Identity
-	Merit  Merit
-	PubKey rsa.PublicKey
+	Nonce     int32
+	Id        Identity
+	Merit     Merit
+	PubKey    string
+	Signature string
 }
 
 type Registration struct {
 	CompanyName string
-	PubKey      rsa.PublicKey
+	PubKey      string
 }
 
 func NewIdentity(name string, age int32, address string, email string, phone string) *Identity {

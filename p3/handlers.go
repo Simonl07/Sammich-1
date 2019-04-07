@@ -1,17 +1,18 @@
 package p3
 
 import (
-	"crypto/rsa"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"sync"
 	"time"
 
 	"../p1"
 	"../p2"
 	"./data"
+	"github.com/gorilla/mux"
 )
 
 // Chain
@@ -19,8 +20,8 @@ var SBC data.SyncBlockChain
 
 // In memory data structures
 var identityMap map[int32]data.Identity
-var userPubKeyMap map[int32]rsa.PublicKey
-var compPubKeyMap map[string]rsa.PublicKey
+var userPubKeyMap map[int32]string
+var compPubKeyMap map[string]string
 
 //Caches for acceptance and application
 var applicationCache map[int32]data.Merit
@@ -39,20 +40,23 @@ func init() {
 
 	// init data structures
 	identityMap = make(map[int32]data.Identity)
-	userPubKeyMap = make(map[int32]rsa.PublicKey)
-	compPubKeyMap = make(map[string]rsa.PublicKey)
+	userPubKeyMap = make(map[int32]string)
+	compPubKeyMap = make(map[string]string)
 
 	// init Caches
 	applicationCache = make(map[int32]data.Merit)
 	acceptanceCache = make(map[string]int32)
 	// First 0-99 are reserved for potential testing
 	UID = 99
+
+	go startTickin()
 }
 
 // Apply submits the application for a given user
 func Apply(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	body, err := ioutil.ReadAll(r.Body)
+	fmt.Print(string(body))
 	if err != nil {
 		w.WriteHeader(500)
 		return
@@ -68,7 +72,9 @@ func Apply(w http.ResponseWriter, r *http.Request) {
 	uid := generateUID()
 	identityMap[uid] = sub.Id
 	userPubKeyMap[uid] = sub.PubKey
+	cachemux.Lock()
 	applicationCache[uid] = sub.Merit
+	cachemux.Unlock()
 }
 
 func flushCache2BC() {
@@ -76,6 +82,8 @@ func flushCache2BC() {
 	acceptMpt.Initial()
 	applyMpt := p1.MerklePatriciaTrie{}
 	applyMpt.Initial()
+
+	cnt := 0
 
 	for k, v := range applicationCache {
 		inchainMerit := new(data.InchainMerit)
@@ -89,39 +97,51 @@ func flushCache2BC() {
 		}
 		applyMpt.Insert(string(k), string(inchainMeritJSON))
 		delete(applicationCache, k)
+		cnt += 1
 	}
 
 	for k, v := range acceptanceCache {
 		acceptMpt.Insert(k, string(v))
 		delete(acceptanceCache, k)
-	}
-	block := new(p2.Block)
-	if SBC.Length() == 0 {
-		block.Initial(SBC.Length()+1, "GENESIS", acceptMpt, applyMpt)
-	} else {
-		parentBlock, _ := SBC.Get(SBC.Length() - 1)
-		block.Initial(SBC.Length()+1, parentBlock[0].Header.Hash, acceptMpt, applyMpt)
+		cnt += 1
 	}
 
-	SBC.Insert(*block)
-}
-
-func startAddition() {
-	ticker := time.NewTicker(10 * time.Second)
-	go func() {
-		for range ticker.C {
-			flushCache2BC()
+	if cnt > 1 {
+		block := new(p2.Block)
+		if SBC.Length() == 0 {
+			block.Initial(SBC.Length()+1, "GENESIS", acceptMpt, applyMpt)
+		} else {
+			parentBlock, _ := SBC.Get(SBC.Length() - 1)
+			block.Initial(SBC.Length()+1, parentBlock[0].Header.Hash, acceptMpt, applyMpt)
 		}
-	}()
-	// ticker.Stop()
+
+		SBC.Insert(*block)
+	}
 }
 
-// Fetch list of job applications
-func FetchMerits(w http.ResponseWriter, r *http.Request) {
-	for i := 0; i < int(SBC.Length()); i++ {
-		//block := sbc.Get(i)
-		//TODO
+func startTickin() {
+	for true {
+		time.Sleep(10 * time.Second)
+		flushCache2BC()
 	}
+}
+
+// Fetch list of merits
+func FetchMerits(w http.ResponseWriter, r *http.Request) {
+	jsonString, err := json.Marshal(SBC.ShowApplications())
+	if err != nil {
+		w.WriteHeader(500)
+	}
+	w.Write(jsonString)
+}
+
+// Fetch list of acceptances
+func FetchAcceptances(w http.ResponseWriter, r *http.Request) {
+	jsonString, err := json.Marshal(SBC.ShowAcceptances())
+	if err != nil {
+		w.WriteHeader(500)
+	}
+	w.Write(jsonString)
 }
 
 // Register a business and their public key
@@ -150,6 +170,35 @@ func Accept(w http.ResponseWriter, r *http.Request) {
 		2. Add acceptance to cache
 		3. Respond with Identity + PubKey of applicant
 	*/
+	vars := mux.Vars(r)
+	// 1
+	// 2
+	company := vars["company"]
+	uidTemp, err := strconv.Atoi(vars["uid"])
+	uid := int32(uidTemp)
+	if err != nil {
+		w.WriteHeader(500)
+		return
+	}
+	cachemux.Lock()
+	acceptanceCache[company] = uid
+	cachemux.Unlock()
+	// 3
+	identity, oki := identityMap[uid]
+	publicKey, okp := userPubKeyMap[uid]
+	if !oki || !okp {
+		fmt.Print("UNABLE TO GET USER INFO")
+	}
+	type info struct {
+		Idt data.Identity `json:"identity"`
+		Pk  string        `json:"publicKey"`
+	}
+	jsonInfo, err := json.Marshal(info{identity, publicKey})
+	if err != nil {
+		w.WriteHeader(500)
+	} else {
+		fmt.Print(jsonInfo)
+	}
 }
 
 // Show Blockchain
@@ -159,6 +208,17 @@ func Show(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(500)
 	}
 	w.WriteHeader(200)
+}
+
+// ShowKeys show all the keys
+func ShowKeys(w http.ResponseWriter, r *http.Request) {
+	compPubKeyMapJSON, _ := json.Marshal(compPubKeyMap)
+	w.Write([]byte("Company Public Keys: "))
+	w.Write(compPubKeyMapJSON)
+	w.Write([]byte("\n"))
+	w.Write([]byte("Applicant Public Keys: "))
+	userPubKeyMapJSON, _ := json.Marshal(userPubKeyMap)
+	w.Write(userPubKeyMapJSON)
 }
 
 // Download Blockchain

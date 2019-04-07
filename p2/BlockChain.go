@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"sort"
+	"strconv"
 	"time"
 
 	"../p1"
@@ -140,6 +142,37 @@ func (bc *BlockChain) EncodeToJson() (string, error) {
 	return string(resp), nil
 }
 
+func (bc *BlockChain) ShowAcceptances() map[string]int32 {
+	acc := make(map[string]int32)
+
+	for _, v := range bc.Chain {
+		blk := v[0]
+		for k2, v2 := range blk.ApplyValue.Values.Db {
+			uid, err := strconv.Atoi(v2)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Could not show %s accept with %s\n", k2, v2)
+				continue
+			}
+			acc[k2] = int32(uid)
+		}
+	}
+
+	return acc
+}
+
+func (bc *BlockChain) ShowApplications() []string {
+	var merits []string
+
+	for _, v := range bc.Chain {
+		blk := v[0]
+		for _, v2 := range blk.ApplyValue.Values.Db {
+			merits = append(merits, v2)
+		}
+	}
+
+	return merits
+}
+
 // constructMpt takes a map of string, string and inserts each value into a MerklePatriciaTrie.
 // This MPT is returned.
 func constructMpt(mptMap map[string]string) p1.MerklePatriciaTrie {
@@ -168,29 +201,6 @@ func (bc *BlockChain) GenBlock(acceptMpt p1.MerklePatriciaTrie, applyMpt p1.Merk
 	bc.Length++
 	return block, nil
 }
-
-// GenBlock generates the next block at the next height
-// func (bc *BlockChain) AddToChain(subs []data.Submission) error {
-// 	if bc.Length == 0 || len(bc.Chain[bc.Length-1]) == 0 {
-// 		return Block{}, errors.New("missing parent")
-// 	}
-// 	acceptMpt := p1.MerklePatriciaTrie{}
-// 	acceptMpt.Initial()
-// 	applyMpt := p1.MerklePatriciaTrie{}
-// 	applyMpt.Initial()
-// 	for _, v := range subs {
-// 		sbc.bc.AddToChain(submissions)
-// 	}	block := Block{}
-// 	block.Initial(bc.Length+1, bc.Chain[bc.Length-1][0].Header.Hash, acceptMpt, applyMpt)
-// 	for _, v := range subs {
-// 		sbc.bc.AddToChain(submissions)
-// 	}	block := Block{}
-// 	block.Initial(bc.Length+1, bc.Chain[bc.Length-1][0].Header.Hash, acceptMpt, applyMpt)
-// 	//fmt.Printf("Able to add %s to %+v\n", block.Header.Hash, bc.Chain[block.Header.Height-1])
-// 	bc.Chain[bc.Length] = append(bc.Chain[bc.Length], block)
-// 	bc.Length++
-// 	return block, nil
-// }
 
 // GetHighest returns the list of blocks at the highest height
 func (bc *BlockChain) GetHighest() ([]Block, error) {

@@ -43,9 +43,21 @@ var routes = Routes{
 		FetchMerits,
 	},
 	Route{
+		"FetchAcceptances",
+		"GET",
+		"/view/acceptances",
+		FetchAcceptances,
+	},
+	Route{
 		"Download",
 		"GET",
 		"/download",
 		Download,
+	},
+	Route{
+		"ShowKeys",
+		"GET",
+		"/keys",
+		ShowKeys,
 	},
 }
