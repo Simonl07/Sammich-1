@@ -19,6 +19,13 @@ type Merit struct {
 	Experience []string
 }
 
+type InchainMerit struct {
+	UID        int32
+	Skills     []string
+	Education  []string
+	Experience []string
+}
+
 type Submission struct {
 	Nonce  int32
 	Id     Identity

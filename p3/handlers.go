@@ -3,6 +3,7 @@ package p3
 import (
 	"crypto/rsa"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -78,7 +79,16 @@ func flushCache2BC() {
 	applyMpt.Initial()
 
 	for k, v := range applicationCache {
-		applyMpt.Insert(k, v)
+		inchainMerit := new(InchainMerit)
+		inchainMerit.Skills = v.Skills
+		inchainMerit.Education = v.Education
+		inchainMerit.Experience = v.Experience
+		inchainMerit.UID = k
+		inchainMeritJSON, err := json.Marshal(inchainMerit)
+		if err != nil {
+			fmt.Print("UNABLE TO FLUSH CACHE TO BC")
+		}
+		applyMpt.Insert(k, inchainMeritJSON)
 		delete(applicationCache, k)
 	}
 
@@ -114,7 +124,7 @@ func startAddition() {
 func FetchMerits(w http.ResponseWriter, r *http.Request) {
 	for i := 0; i < sbc.bc.Length; i++ {
 		block := sbc.Get(i)
-
+		//TODO
 	}
 }
 
@@ -137,7 +147,14 @@ func RegisterBusiness(w http.ResponseWriter, r *http.Request) {
 
 // Accept a user
 func Accept(w http.ResponseWriter, r *http.Request) {
-
+	/*
+		1. Verify(optional):
+			m = url path
+			make sure that H(m) == decrypt(signature, pub)
+		2. Add acceptance to cache
+		3. If cache overflow, flush to BC
+		4. Respond with Identity + PubKey of applicant
+	*/
 }
 
 // Show Blockchain
