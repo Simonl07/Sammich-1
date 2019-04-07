@@ -46,28 +46,42 @@ public class Driver {
 			
 			PublicKey pub = kp.getPublic();
 			PrivateKey prv = kp.getPrivate();
-			
+			String signature = "";
 			while(true) {
 				MessageDigest digest = MessageDigest.getInstance("SHA-256");
 				byte[] hash = digest.digest(resumeJSON.toString().concat(Integer.toString(nonce)).getBytes(StandardCharsets.UTF_8));
-				boolean flag = true;
-				for(int i = 0; i < numOfZero; i++) {
-					if(hash[i] != 0) {
-						flag = false;
-						
-					}
-				}
-				if(flag) {
-					sign(prv, hash);
+				String hexString = byteArrayToHex(hash);
+				
+				
+				
+				if(hexString.startsWith("00")) {
+					System.out.println(hexString);
+					signature = sign(prv, hash);
 					break;
 				}
+				System.out.println("nonce is " + nonce);
 				nonce++;
 			}
 			
 			//send the pub key and hash to server
+//			System.out.println("the encrypt is: ");
+//			System.out.println("===============");
+//			System.out.println(signature);
+//			System.out.println("===============");
 			
+			byte[] decry = decrypt(signature, pub);
 			
-			
+			String test = byteArrayToHex(decry);
+//			System.out.println("test is ");
+//			System.out.println("==============");
+			System.out.println(test);
+//			System.out.println("==============");
+			System.out.println(test == signature ? "yes" : "no");
+			System.out.printf("sign length is %d\n", signature.length());
+			System.out.printf("test length is %d\n", test.length());
+			if(test.equals(signature)) {
+				System.err.println("yes!!!!!!!!!!!!!!!!!");
+			}
 			
 			
 			
@@ -80,6 +94,16 @@ public class Driver {
 		}
 	}
 	
+	public static byte[] fromHexString(String s) {
+	    int len = s.length();
+	    byte[] data = new byte[len / 2];
+	    for (int i = 0; i < len; i += 2) {
+	        data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
+	                             + Character.digit(s.charAt(i+1), 16));
+	    }
+	    return data;
+	}
+	
 	public static String byteArrayToHex(byte[] a) {
 		   StringBuilder sb = new StringBuilder(a.length * 2);
 		   for(byte b: a)
@@ -89,19 +113,42 @@ public class Driver {
 	
 	public static String sign(PrivateKey pry, byte[] hash) {
 		
-		byte[] obuf = new byte[] {};
+		byte[] obuf;
 		try {
 			Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-			cipher.init(Cipher.DECRYPT_MODE, pry);
+			cipher.init(Cipher.ENCRYPT_MODE, pry);
 			obuf = cipher.update(hash, 0, hash.length);
 			obuf = cipher.doFinal();
-			
+			return byteArrayToHex(obuf);
 		} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			return null;
 		}
-		return byteArrayToHex(obuf);
+	}
 	
+	public static byte[] decrypt(String signature, PublicKey pub) {
+		
+		byte[] obuf;
+		try {
+			Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+			cipher.init(Cipher.DECRYPT_MODE, pub);
+			
+			
+			
+			
+			byte[] hexString = fromHexString(signature);
+			obuf = cipher.update(hexString, 0, hexString.length);
+			obuf = cipher.doFinal();
+			return obuf;
+		} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
+		
+		
+		
 	}
 
 }
