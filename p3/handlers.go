@@ -6,13 +6,14 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"time"
 )
 
 var SBC data.SyncBlockChain
 var identityMap map[int32]data.Identity
 var userPubKeyMap map[int32]rsa.PublicKey
 var compPubKeyMap map[int32]rsa.PublicKey
-var cache data.Submission[]
+var cache []data.Submission
 var UID int32
 
 // init will be executed before everything else.
@@ -43,7 +44,22 @@ func Apply(w http.ResponseWriter, r *http.Request) {
 	uid := generateUID()
 	identityMap[uid] = sub.Id
 	userPubKeyMap[uid] = sub.PubKey
-	go
+	cache = append(cache, sub)
+	SBC.AddToChain(cache)
+}
+
+func addToChain() {
+	SBC.AddToChain(cache)
+}
+
+func startAddition() {
+	ticker := time.NewTicker(10 * time.Second)
+	go func() {
+		for range ticker.C {
+			addToChain()
+		}
+	}()
+	// ticker.Stop()
 }
 
 // Fetch list of job applications
@@ -70,7 +86,6 @@ func Show(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(200)
 }
 
-
 // Download Blockchain
 func Download(w http.ResponseWriter, r *http.Request) {
 	jsonString, err := json.Marshal(&SBC)
@@ -83,7 +98,6 @@ func Download(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(200)
 }
-
 
 func generateUID() int32 {
 	UID = UID + 1
