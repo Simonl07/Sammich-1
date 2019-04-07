@@ -49,13 +49,14 @@ func init() {
 	// First 0-99 are reserved for potential testing
 	UID = 99
 
-	startTickin()
+	go startTickin()
 }
 
 // Apply submits the application for a given user
 func Apply(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	body, err := ioutil.ReadAll(r.Body)
+	fmt.Print(string(body))
 	if err != nil {
 		w.WriteHeader(500)
 		return
@@ -80,6 +81,8 @@ func flushCache2BC() {
 	applyMpt := p1.MerklePatriciaTrie{}
 	applyMpt.Initial()
 
+	cnt := 0
+
 	for k, v := range applicationCache {
 		inchainMerit := new(data.InchainMerit)
 		inchainMerit.Skills = v.Skills
@@ -92,31 +95,33 @@ func flushCache2BC() {
 		}
 		applyMpt.Insert(string(k), string(inchainMeritJSON))
 		delete(applicationCache, k)
+		cnt += 1
 	}
 
 	for k, v := range acceptanceCache {
 		acceptMpt.Insert(k, string(v))
 		delete(acceptanceCache, k)
-	}
-	block := new(p2.Block)
-	if SBC.Length() == 0 {
-		block.Initial(SBC.Length()+1, "GENESIS", acceptMpt, applyMpt)
-	} else {
-		parentBlock, _ := SBC.Get(SBC.Length() - 1)
-		block.Initial(SBC.Length()+1, parentBlock[0].Header.Hash, acceptMpt, applyMpt)
+		cnt += 1
 	}
 
-	SBC.Insert(*block)
+	if cnt > 1 {
+		block := new(p2.Block)
+		if SBC.Length() == 0 {
+			block.Initial(SBC.Length()+1, "GENESIS", acceptMpt, applyMpt)
+		} else {
+			parentBlock, _ := SBC.Get(SBC.Length() - 1)
+			block.Initial(SBC.Length()+1, parentBlock[0].Header.Hash, acceptMpt, applyMpt)
+		}
+
+		SBC.Insert(*block)
+	}
 }
 
 func startTickin() {
-	ticker := time.NewTicker(10 * time.Second)
-	go func() {
-		for range ticker.C {
-			flushCache2BC()
-		}
-	}()
-	// ticker.Stop()
+	for true {
+		time.Sleep(10 * time.Second)
+		flushCache2BC()
+	}
 }
 
 // Fetch list of job applications
