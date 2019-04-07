@@ -40,6 +40,6 @@ var routes = Routes{
 		"Show",
 		"GET",
 		"/show",
-		Accept,
+		Show,
 	},
 }
