@@ -160,19 +160,13 @@ func (bc *BlockChain) ShowAcceptances() map[string]int32 {
 	return acc
 }
 
-func (bc *BlockChain) ShowApplciations() []data.Merit {
-	var merits []data.Merit
+func (bc *BlockChain) ShowApplciations() []string {
+	var merits []string
 
 	for _, v := range bc.Chain {
 		blk := v[0]
-		for k2, v2 := range blk.ApplyValue.Values.Db {
-			m := data.Merit{}
-			err := json.Unmarshal([]byte(v2), &m)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "Could not show %s\n", k2)
-				continue
-			}
-			merits = append(merits, m)
+		for _, v2 := range blk.ApplyValue.Values.Db {
+			merits = append(merits, v2)
 		}
 	}
 
